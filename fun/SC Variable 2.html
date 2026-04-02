@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		body {
+			font-family: -apple-system;
+			padding: 20px;
+			max-width: 400px;
+			margin: auto;
+		}
+
+		input,
+		select {
+			width: 100%;
+			padding: 10px;
+			margin: 8px 0 16px;
+			font-size: 16px;
+			border: 1px solid #ccc;
+			border-radius: 8px;
+			box-sizing: border-box;
+		}
+
+		button {
+			width: 100%;
+			padding: 12px;
+			background: #007AFF;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			font-size: 16px;
+		}
+
+		#status {
+			margin-top: 16px;
+			color: green;
+			font-weight: bold;
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<h2>Trip Request</h2>
+
+	<label>Your Name</label>
+	<input type="text" id="name" placeholder="Jane Smith">
+
+	<label>Destination</label>
+	<input type="text" id="destination" placeholder="Tokyo">
+
+	<label>Travel Class</label>
+	<select id="class">
+		<option value="economy">Economy</option>
+		<option value="business">Business</option>
+		<option value="first">First Class</option>
+	</select>
+
+	<button id="subbutton" onclick="submitForm()">Submit</button>
+	<div id="status"></div>
+
+	<script>
+			function submitForm() {
+			const name = document.getElementById('name').value.trim();
+			const destination = document.getElementById('destination').value.trim();
+			const travelClass = document.getElementById('class').value;
+
+			if (!name || !destination) {
+				alert("Please fill in all fields.");
+				return;
+			}
+
+			// Build result as JSON
+			const result = JSON.stringify({
+				name: name,
+				destination: destination,
+				class: travelClass,
+				submitted: new Date().toISOString()
+			});
+
+			// Write to clipboard so Shortcuts can read it
+			const el = document.createElement('textarea');
+			el.value = result;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+
+			document.getElementById('status').innerText = "Close this page to continue.";
+			
+			
+			// Select the button element by its ID
+			const bel = document.getElementById("subbutton");
+			bel.textContent = "Request Submitted";
+			bel.style.backgroundColor = "Green";
+		}
+	</script>
+</body>
+
+</html>

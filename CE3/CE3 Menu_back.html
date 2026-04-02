@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Image Settings</title>
+<style>
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	body {
+		font-family: -apple-system, 'SF Pro Display', sans-serif;
+		background: #ffffff;
+		padding: 20px;
+	}
+
+	.section {
+		margin-bottom: 20px;
+	}
+
+	.section-label {
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: #6c6c70;
+		text-transform: uppercase;
+		letter-spacing: 0.6px;
+		margin-bottom: 12px;
+	}
+
+	.orient-group {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.orient-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.orient-label {
+		font-size: 15px;
+		font-weight: 500;
+		color: #3a3a3c;
+		text-align: right;
+		min-width: 90px;
+	}
+
+	.orient-btn {
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		border: 2px solid #d1d1d6;
+		background: #ffffff;
+		cursor: pointer;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.orient-btn.selected {
+		border-color: #007aff;
+		background: #007aff;
+	}
+
+	.orient-btn.selected::after {
+		content: '';
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #ffffff;
+	}
+
+	.stepper-row {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+	}
+
+	.stepper-btn {
+		width: 40px;
+		height: 40px;
+		border-radius: 10px;
+		border: 1.5px solid #d1d1d6;
+		background: #f9f9fb;
+		font-size: 22px;
+		color: #007aff;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		user-select: none;
+		-webkit-user-select: none;
+	}
+
+	.stepper-btn:active {
+		background: #e5e5ea;
+	}
+
+	.stepper-value {
+		width: 48px;
+		text-align: center;
+		font-size: 20px;
+		font-weight: 500;
+		color: #1c1c1e;
+	}
+
+	.stepper-hint {
+		font-size: 14px;
+		color: #6c6c70;
+		white-space: nowrap;
+	}
+
+	#status {
+		text-align: center;
+		font-size: 11px;
+		color: #aeaeb2;
+		margin-top: 10px;
+	}
+</style>
+</head>
+<body>
+
+	<div class="section">
+		<div class="section-label">Orientation</div>
+		<div class="orient-group">
+			<div class="orient-row">
+				<span class="orient-label">Horizontal</span>
+				<button class="orient-btn selected" id="btn-horizontal" onclick="onOrientationChange('horizontal')"></button>
+			</div>
+			<div class="orient-row">
+				<span class="orient-label">Vertical</span>
+				<button class="orient-btn" id="btn-vertical" onclick="onOrientationChange('vertical')"></button>
+			</div>
+		</div>
+	</div>
+
+	<div class="section">
+		<div class="section-label">Space Between Images</div>
+		<div class="stepper-row">
+			<button class="stepper-btn" onclick="stepSpacing(-1)">−</button>
+			<span class="stepper-value" id="spacingDisplay">1</span>
+			<button class="stepper-btn" onclick="stepSpacing(1)">+</button>
+			<span class="stepper-hint">% (0–25)</span>
+		</div>
+	</div>
+
+	<div id="status">—</div>
+
+<script>
+	var currentOrientation = 'horizontal';
+	var currentSpacing     = 1;
+
+	function writeClipboard() {
+		const json = JSON.stringify({
+			orientation: currentOrientation,
+			spacing:     currentSpacing
+		});
+		const el = document.createElement('textarea');
+		el.value = json;
+		document.body.appendChild(el);
+		el.select();
+		document.execCommand('copy');
+		document.body.removeChild(el);
+		document.getElementById('status').textContent = 'Ready: ' + json;
+	}
+
+	function onOrientationChange(value) {
+		currentOrientation = value;
+		document.getElementById('btn-horizontal').className = 'orient-btn' + (value === 'horizontal' ? ' selected' : '');
+		document.getElementById('btn-vertical').className   = 'orient-btn' + (value === 'vertical'   ? ' selected' : '');
+		writeClipboard();
+	}
+
+	function stepSpacing(delta) {
+		var val = currentSpacing + delta;
+		if (val < 0)  val = 0;
+		if (val > 25) val = 25;
+		currentSpacing = val;
+		document.getElementById('spacingDisplay').textContent = val;
+		writeClipboard();
+	}
+</script>
+
+</body>
+</html>

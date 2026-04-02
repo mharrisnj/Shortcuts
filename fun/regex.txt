@@ -1,0 +1,3 @@
+^(?:\w+\s+){2}(\w+)
+Hello world hi.
+What the fuck is going on?

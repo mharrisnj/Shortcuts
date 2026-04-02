@@ -1,0 +1,90 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <style>
+    body { 
+        font-family: -apple-system; 
+        background: #F2F2F7; 
+        color: #000000; 
+        padding: 20px; 
+    }
+    label { 
+        display: block; 
+        margin-top: 15px; 
+        color: #3C3C43; 
+        font-size: 0.9em; 
+        font-weight: 500;
+    }
+    input { 
+        width: 100%; 
+        padding: 12px; 
+        margin-top: 5px; 
+        background: #FFFFFF; 
+        border: 1px solid #C6C6C8; 
+        border-radius: 10px; 
+        color: #000000; 
+        font-size: 16px; 
+        box-sizing: border-box; 
+        -webkit-appearance: none;
+    }
+    button { 
+        width: 100%; 
+        padding: 15px; 
+        margin-top: 25px; 
+        background: #007AFF; 
+        border: none; 
+        border-radius: 12px; 
+        color: white; 
+        font-weight: 600; 
+        font-size: 17px; 
+    }
+    h3 {
+        color: #000000;
+        margin-bottom: 10px;
+    }
+    </style>
+</head>
+<body>
+    <h3>E-Mix Calculator</h3>
+    
+    <div id="calculator-interface">
+        <label>Miles to Refill</label>
+        <input type="number" id="miles_refill" step="any" required>
+        
+        <label>Mileage Since Last Refill (mpg)</label>
+        <input type="number" id="miles_since" step="any" required>
+        
+        <label>Current Ethanol Tank %</label>
+        <input type="number" id="eth_tank" step="any" required>
+        
+        <label>Pump E85 Content (e.g. 85)</label>
+        <input type="number" id="eth_pump" step="any" required>
+        
+        <label>Desired Ethanol %</label>
+        <input type="number" id="eth_target" step="any" required>
+
+  <label>Add E85 gal</label>
+        <input type="number" id="e85_add" step="any" required>
+
+        <button type="button" onclick="calculate()">Calculate Mix</button>
+    </div>
+
+    <script>
+     function calculate() {
+        const payload = {
+            miles_refill: document.getElementById('miles_refill').value,
+            miles_since: document.getElementById('miles_since').value,
+            eth_tank: document.getElementById('eth_tank').value,
+            eth_pump: document.getElementById('eth_pump').value,
+            eth_target: document.getElementById('eth_target').value
+
+
+        };
+
+        // completion() is a native Shortcuts bridge function. 
+        // Calling it passes the data back and closes the web view.
+        completion(payload);
+    }
+    </script>
+</body>
+</html>

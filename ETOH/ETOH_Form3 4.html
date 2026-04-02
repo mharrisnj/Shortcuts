@@ -1,0 +1,148 @@
+<html>
+<head>
+	<meta name="viewport" 
+		content="width=device-width,
+			initial-scale=0.8,
+			minimum-scale=0.5,
+			maximum-scale=5,
+			user-scalable=yes">
+			
+	<style>
+	body { 
+			font-family: -apple-system; 
+			background: #F2F2F7; 
+			color: #000000; 
+			padding: 20px;
+			min-height: 100vh;
+			min-height: 100dvh;
+	}
+	label { 
+			//display: block; 
+			margin-top: 15px; 
+			color: #3C3C43; 
+			font-size: 0.9em; 
+			font-weight: 500;
+	}
+	input { 
+			width: 100px; 
+			padding: 4px; 
+			margin-top: 5px; 
+			background: #FFFFFF; 
+			border: 1px solid #C6C6C8; 
+			border-radius: 4px; 
+			color: #000000; 
+			font-size: 12px; 
+			//box-sizing: border-box; 
+			//-webkit-appearance: none;
+	}
+	button {
+			Display:block;
+			width: 90px; 
+			padding: 2px; 
+			margin-top: 25px;
+			margin-left: 4px;
+			background: #007AFF; 
+			border: none; 
+			border-radius: 5px; 
+			color: white; 
+			font-weight: 600; 
+			font-size: 14px;
+	}
+	h3 {
+		
+		text-align: center;
+		font-weight: 700;
+		width: 250px;
+	}
+
+			
+	</style>
+</head>
+<body>
+	<h3>E-Mix Calculator</h3>
+	
+	<form id="calculator-interface">
+			<div id="err" style="margin-top:10px;color:#d00;font-weight:600;"></div>
+			
+			<!--<label>Calculating -->
+			
+			<input type="number" id="mr" step="any" required>
+			<label>Miles to Refill<br></label>
+			
+			<input type="number" id="mpg" step="any" required>
+			<label>Mileage Since Last Refill (mpg)<br></label>
+			
+			<input type="number" id="et" step="any" required>
+			<label>Ethanol in tank %<br></label>
+			
+			<input type="number" id="e85" step="any" required>
+			<label>Pump E85 Content % (e.g. 76)<br></label>
+			
+			<input type="number" id="e10" step="any" required>
+			<label>Pump E10 Content % (e.g. 17)<br></label>
+
+			<input type="number" id="gcap" step="any" required>
+			<label>Desired fill level (gal)<br></label>
+
+			<input type="number" id="ef" step="any" required>
+			<label>Desired Ethanol %<br></label>
+
+			<button type="submit">Calculate</button>
+
+			<input type="text" id="g85" readonly>
+			<label>E85 to add (gal)<br></label>
+
+			<input type="text" id="g10" readonly>
+			<label>E10 to add (gal)<br></label>
+			
+	</form>
+
+	
+	<script>
+			
+		document.getElementById('calculator-interface').addEventListener('submit', function (e) {
+			e.preventDefault();
+			
+			const inputErr = document.getElementById('err');
+			inputErr.textContent = "";
+			
+			if (!this.checkValidity()) {
+				this.reportValidity();
+		
+				document.getElementById('g10').value = "";
+				document.getElementById('g85').value = "";
+				inputErr.textContent = "Each field must contain a number";
+				return;
+			}
+
+			calculate();
+		});
+		
+		
+		function calculate() {
+			const mr = document.getElementById('mr').value;
+			const mpg = document.getElementById('mpg').value;
+			const et = document.getElementById('et').value;
+			const e85 = document.getElementById('e85').value;
+			const e10 = document.getElementById('e10').value;
+			const gcap = document.getElementById('gcap').value;
+			const ef = document.getElementById('ef').value;
+			
+			const gt = mr/mpg;
+			const g10 = (gcap*(e85-ef)-gt*(e85-et))/(e85-e10);
+			const g85 = (gcap*(ef-e10)-gt*(et-e10))/(e85-e10);
+
+
+			if (e85 === e10) {
+				err.textContent = "E-85 content and the desired content cannot be the same.";
+				return;
+			}
+
+			document.getElementById('g10').value = g10.toFixed(2);
+			document.getElementById('g85').value = g85.toFixed(2);
+		}
+		
+		
+	</script>
+</body>
+</html>
