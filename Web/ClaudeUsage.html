@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage Tracker — 45 req / 5hr</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #0a0a0c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+      font-family: 'Courier New', Courier, monospace;
+      color: #c8c8d0;
+    }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 32px; }
+    .header .eyebrow { font-size: 11px; letter-spacing: 6px; color: #555; text-transform: uppercase; margin-bottom: 6px; }
+    .header h1 { font-size: 26px; font-weight: 700; color: #e8e8f0; letter-spacing: 1px; }
+    .header .sub { font-size: 12px; color: #444; margin-top: 4px; }
+
+    /* ── Cards ── */
+    .card {
+      background: #111116;
+      border-radius: 16px;
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 20px;
+      border: 1px solid #1e1e28;
+      transition: border-color .4s, box-shadow .4s;
+    }
+
+    /* ── Risk badge ── */
+    .risk-badge {
+      display: inline-block;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      padding: 4px 14px;
+      margin-bottom: 16px;
+      transition: all .4s;
+    }
+
+    /* ── SVG gauge ── */
+    .gauge-wrap { display: flex; justify-content: center; margin-bottom: 4px; }
+    #gauge-svg { overflow: visible; }
+
+    /* ── Stats row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: #0d0d12;
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      border: 1px solid #1e1e28;
+    }
+    .stat-val { font-size: 18px; font-weight: 700; line-height: 1.1; transition: color .4s; }
+    .stat-lbl { font-size: 9px; color: #444; letter-spacing: 2px; margin-top: 3px; }
+
+    /* ── Projected bar ── */
+    #projected {
+      background: #0d0d12;
+      border: 1px solid #1e1e28;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      font-size: 12px;
+      display: none;
+    }
+    #projected .proj-label { color: #555; letter-spacing: 1px; }
+    #projected .proj-val { font-weight: 700; }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 10px; }
+    #btn-log {
+      flex: 2;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      color: #000;
+      transition: background .4s, box-shadow .4s;
+    }
+    #btn-clear {
+      flex: 1;
+      padding: 12px 0;
+      background: transparent;
+      color: #444;
+      border: 1px solid #222;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    #btn-clear:hover { border-color: #444; color: #888; }
+
+    /* ── Recommendation card ── */
+    #rec-card { font-size: 12px; }
+    .rec-eyebrow { font-size: 10px; letter-spacing: 3px; color: #444; margin-bottom: 10px; }
+    #rec-text { transition: color .4s; }
+
+    /* ── Log card ── */
+    #log-card { display: none; max-height: 200px; overflow-y: auto; font-size: 11px; }
+    .log-eyebrow { font-size: 10px; letter-spacing: 3px; color: #444; margin-bottom: 10px; }
+    .log-row {
+      display: flex;
+      justify-content: space-between;
+      color: #3a3a55;
+      border-bottom: 1px solid #14141c;
+      padding: 4px 0;
+    }
+    .log-row .lr-num { color: #555; }
+    .log-row .lr-exp { color: #333; }
+
+    .footer { margin-top: 24px; font-size: 10px; color: #2a2a35; letter-spacing: 2px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="eyebrow">Request Monitor</div>
+    <h1>Usage Tracker</h1>
+    <div class="sub">45 requests / 5-hour rolling window</div>
+  </div>
+
+  <!-- Main gauge card -->
+  <div class="card" id="main-card">
+    <div style="text-align:center">
+      <span class="risk-badge" id="risk-badge">ON TRACK</span>
+    </div>
+
+    <div class="gauge-wrap">
+      <svg id="gauge-svg" width="220" height="150" viewBox="0 0 220 150">
+        <path id="gauge-track" fill="none" stroke="#222228" stroke-width="14" stroke-linecap="round"/>
+        <path id="gauge-fill"  fill="none" stroke="#00e5a0" stroke-width="14" stroke-linecap="round"/>
+        <text id="gauge-count" x="110" y="108" text-anchor="middle" fill="#00e5a0"
+          font-size="38" font-weight="700" font-family="'Courier New', monospace">0</text>
+        <text x="110" y="128" text-anchor="middle" fill="#444" font-size="12"
+          font-family="'Courier New', monospace">of 45</text>
+      </svg>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="s-remain">45</div><div class="stat-lbl">REMAINING</div></div>
+      <div class="stat"><div class="stat-val" id="s-rate" style="color:#8888aa">—</div><div class="stat-lbl">RATE /hr</div></div>
+      <div class="stat"><div class="stat-val" id="s-window" style="color:#8888aa">—</div><div class="stat-lbl">WINDOW</div></div>
+    </div>
+
+    <div id="projected">
+      <span class="proj-label">PROJECTED (5hr)</span>
+      <span class="proj-val" id="proj-val"></span>
+    </div>
+
+    <div class="btn-row">
+      <button id="btn-log" onclick="addRequest()">+ LOG REQUEST</button>
+      <button id="btn-clear" onclick="clearAll()">CLEAR</button>
+    </div>
+  </div>
+
+  <!-- Recommendation card -->
+  <div class="card" id="rec-card" style="border-radius:12px; padding:16px 20px;">
+    <div class="rec-eyebrow">PROVIDER RECOMMENDATION</div>
+    <p id="rec-text" style="color:#555">Log some requests to see a recommendation.</p>
+  </div>
+
+  <!-- Log card -->
+  <div class="card" id="log-card" style="border-radius:12px; padding:16px 20px;">
+    <div class="log-eyebrow">ACTIVE LOG (<span id="log-count">0</span>)</div>
+    <div id="log-rows"></div>
+  </div>
+
+  <div class="footer">DATA PERSISTS ACROSS SESSIONS &bull; ROLLING 5-HOUR WINDOW</div>
+
+<script>
+  const LIMIT    = 45;
+  const WIN_MS   = 5 * 60 * 60 * 1000;
+  const LS_KEY   = 'usage-tracker-v1';
+
+  // ── Colours ──────────────────────────────────────────────────────────────
+  function risk(count, rate) {
+    if (count >= LIMIT)         return { label:'LIMIT REACHED', color:'#ff2d2d', bg:'#2a0000', glow:'#ff2d2d' };
+    if (count >= 35 || rate>8)  return { label:'HIGH RISK',     color:'#ff6b00', bg:'#1f0f00', glow:'#ff6b00' };
+    if (count >= 25 || rate>6)  return { label:'MODERATE',      color:'#f5c400', bg:'#1a1500', glow:'#f5c400' };
+    return                             { label:'ON TRACK',       color:'#00e5a0', bg:'#001a10', glow:'#00e5a0' };
+  }
+
+  // ── Formatting ────────────────────────────────────────────────────────────
+  function fmtMs(ms) {
+    if (ms <= 0) return 'expired';
+    const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+    if (h>0) return `${h}h ${m}m`;
+    if (m>0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+  function fmtTs(ts) {
+    return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+
+  // ── Storage ───────────────────────────────────────────────────────────────
+  function load() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
+  }
+  function save(arr) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(arr)); } catch {}
+  }
+
+  let requests = load();
+
+  // ── Arc path ──────────────────────────────────────────────────────────────
+  function arcPath(fraction) {
+    const r=80, cx=110, cy=110;
+    const sa = -220*(Math.PI/180);
+    const ea = sa + fraction*260*(Math.PI/180);
+    const x1=cx+r*Math.cos(sa), y1=cy+r*Math.sin(sa);
+    const x2=cx+r*Math.cos(ea), y2=cy+r*Math.sin(ea);
+    const lg = fraction>0.5?1:0;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${lg} 1 ${x2} ${y2}`;
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────────
+  function render() {
+    const now  = Date.now();
+    const active = requests.filter(r => now-r < WIN_MS);
+    // prune stale
+    if (active.length !== requests.length) { requests = active; save(requests); }
+
+    const count  = active.length;
+    const oldest = count>0 ? Math.min(...active) : null;
+    const winEnd = oldest ? oldest+WIN_MS : null;
+    const tLeft  = winEnd ? winEnd-now : null;
+    const elapsed = oldest ? (now-oldest)/3600000 : 0;
+    const rate   = elapsed>0.05 ? count/elapsed : 0;
+    const proj   = rate>0 ? Math.round(rate*5) : count;
+    const pct    = Math.min(count/LIMIT, 1);
+    const r      = risk(count, rate);
+
+    // gauge track (always full arc)
+    document.getElementById('gauge-track').setAttribute('d', arcPath(1));
+    // gauge fill
+    const fill = document.getElementById('gauge-fill');
+    if (pct > 0) {
+      fill.setAttribute('d', arcPath(pct));
+      fill.setAttribute('stroke', r.color);
+      fill.style.filter = `drop-shadow(0 0 6px ${r.glow})`;
+      fill.style.display = '';
+    } else {
+      fill.style.display = 'none';
+    }
+    // count text
+    const ct = document.getElementById('gauge-count');
+    ct.textContent = count;
+    ct.setAttribute('fill', r.color);
+    ct.style.filter = `drop-shadow(0 0 8px ${r.glow})`;
+
+    // badge
+    const badge = document.getElementById('risk-badge');
+    badge.textContent = r.label;
+    badge.style.color  = r.color;
+    badge.style.background = r.bg;
+    badge.style.border = `1px solid ${r.color}55`;
+    badge.style.boxShadow = `0 0 12px ${r.glow}30`;
+
+    // main card glow
+    const mc = document.getElementById('main-card');
+    mc.style.borderColor = r.color+'33';
+    mc.style.boxShadow   = `0 0 40px ${r.glow}18`;
+
+    // stats
+    document.getElementById('s-remain').textContent = Math.max(0, LIMIT-count);
+    document.getElementById('s-remain').style.color = r.color;
+    document.getElementById('s-rate').textContent   = rate>0 ? rate.toFixed(1) : '—';
+    document.getElementById('s-window').textContent = tLeft ? fmtMs(tLeft) : '—';
+
+    // projected
+    const projEl = document.getElementById('projected');
+    if (rate>0) {
+      projEl.style.display = 'flex';
+      projEl.style.background = proj>=LIMIT ? '#1a0500' : '#0d0d12';
+      projEl.style.borderColor = proj>=LIMIT ? '#ff6b0033' : '#1e1e28';
+      const pv = document.getElementById('proj-val');
+      pv.textContent = `${proj} requests ${proj>=LIMIT?'⚠ OVER LIMIT':'✓ within limit'}`;
+      pv.style.color = proj>=LIMIT ? '#ff6b00' : '#00e5a0';
+    } else {
+      projEl.style.display = 'none';
+    }
+
+    // log button
+    const btn = document.getElementById('btn-log');
+    btn.style.background  = r.color;
+    btn.style.boxShadow   = `0 0 16px ${r.glow}44`;
+
+    // recommendation
+    const rec = document.getElementById('rec-text');
+    if (count===0) {
+      rec.style.color = '#555';
+      rec.innerHTML = 'Log some requests to see a recommendation.';
+    } else if (count>=LIMIT) {
+      rec.style.color = '#ff2d2d';
+      rec.innerHTML = "⛔ You've hit your limit. Consider switching providers or waiting for the window to reset.";
+    } else if (proj>=LIMIT) {
+      rec.style.color = '#ff6b00';
+      rec.innerHTML = "⚠ At your current rate, you'll hit the limit before the window ends. Consider <strong style='color:#ff6b00'>switching providers</strong> now.";
+    } else if (pct>=0.6) {
+      rec.style.color = '#f5c400';
+      rec.innerHTML = "🟡 You're over 60% of your limit. Monitor closely — stay if usage slows, otherwise consider switching.";
+    } else {
+      rec.style.color = '#00e5a0';
+      rec.innerHTML = "✅ You're well within your limit. Safe to <strong style='color:#00e5a0'>stay with your current provider</strong>.";
+    }
+
+    // log
+    const logCard = document.getElementById('log-card');
+    if (count>0) {
+      logCard.style.display = '';
+      document.getElementById('log-count').textContent = count;
+      const sorted = [...active].sort((a,b)=>b-a);
+      document.getElementById('log-rows').innerHTML = sorted.map((ts,i)=>`
+        <div class="log-row">
+          <span class="lr-num">#${count-i}</span>
+          <span>${fmtTs(ts)}</span>
+          <span class="lr-exp">expires in ${fmtMs(ts+WIN_MS-now)}</span>
+        </div>`).join('');
+    } else {
+      logCard.style.display = 'none';
+    }
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  function addRequest() {
+    requests.push(Date.now());
+    save(requests);
+    render();
+  }
+  function clearAll() {
+    requests = [];
+    save(requests);
+    render();
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  render();
+  setInterval(render, 1000);
+</script>
+</body>
+</html>
