@@ -7,28 +7,39 @@ try {
 	const apiKey = Keychain.get("anthropicKey");
 	const req = new Request("https://api.anthropic.com/v1/messages");
 
-	req.method = "POST";
-	req.headers = {
-		"x-api-key": apiKey,
-		"anthropic-version": "2023-06-01",
-		"content-type": "application/json"
-	};
-	req.body = JSON.stringify({
-		model: "claude-sonnet-4-6",
-		max_tokens: 1024,
-		system: 'You are a JavaScript reference dictionary. You will recieve one-word queries, and your replies be simple. If it is not a valid JavaScript keyword, try other capitalizations. If the word is found with a different capitalization, use the corrected word. The response will have no markdown formatting, no backticks, no code fences. You will give either the syntax or context as appropriate using the correctly capitalized word, followed by a blank line, followed by a brief description, followed by a blank line, followed by an instructive example. For a properly formatted request, there will be no follow-up information, follow-up questions, no suggestions or anything else to the reply. If the input is not a valid JavaScript input, respond with "The input [keyword] is not a JavaScript keyword. Did you mean [one or two examples]?" If no word is provided, reply with "No input word provided. Supply a single JavaScript keyword." If more than one keyword is provided, reply with "Multiple input words found. Supply a single Java Script keyword." If there is an error not defined above, reply as appropriate. This is not meant to be an interactive session.',
-		messages: [{ role: "user", content: keyword }]
-	});
-	const response = await req.loadJSON();
+	const sysinstructions = `You are a JavaScript reference provider. You will recieve inputs and give a concise but complete explanation of the JavaScript keyword or principal implied. Plain text results only. Use tabs for code formatting. Scan your response for keywords that are not compatible with scriptable and obscure them by surrounding with quotes and respond with [keyword] is not compatible with the Scriptable enviromnent. Where [keyword] is allowed, it is [normal response]... When met with a query that is not a JavaScript keyword, built-in method, or programming concept reply with "[query]" is not a JavaScript keyword, built-in method, or programming concept with no other explanation`
 
-	if (!response.content) {
+	let response = null;
+	let count = 0;
+
+	while (!response?.content?.[0] && count < 3) {
+		req.method = "POST";
+		req.headers = {
+			"x-api-key": apiKey,
+			"anthropic-version": "2023-06-01",
+			"content-type": "application/json"
+		};
+		req.body = JSON.stringify({
+			model: "claude-sonnet-4-6",
+			max_tokens: 1024,
+			system: sysinstructions,
+			messages: [{ role: "user", content: keyword }]
+		});
+		
+		response = await req.loadJSON();
+		count++;
+		
+	}
+	
+
+
+	if (!response?.content?.[0]) {
 		Script.setShortcutOutput("API ERROR: " + JSON.stringify(response));
 		return;
 	}
 
 	Script.setShortcutOutput(response.content[0].text);
-}
 
-catch (e) {
+} catch (e) {
 	Script.setShortcutOutput("ERROR: " + e.message);
 }
